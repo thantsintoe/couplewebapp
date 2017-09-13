@@ -31,6 +31,7 @@ const adminRoutes = require("./routes/admin");
 var app = express();
 
 
+
 //App Configurations
 app.use(express.static(__dirname + "/dist"));
 app.set("view engine","ejs");
