@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>7th Anniversary</title>
+    <style media="screen">
+
+    </style>
+	  <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+  </head>
+  <body>
+
+
+
+
+
+	<div id="app">
+
+	</div>
+<!--    <script src="dist/build.js"></script>-->
+
+
+     <script src="/build.js"></script>
+
+     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.slim.js"></script>
+ 	  <script src="https://momentjs.com/downloads/moment.js"></script>
+     <script type="text/javascript">
+           /* global io */
+           /* global navigator */
+           /* global moment */
+           var socket = io.connect();
+
+           // Handle when connected to server
+           socket.on("connect",function() {
+           console.log("Connect to Server...");
+           });
+
+           //Handle when use has disconnected
+           socket.on("disconnect",function() {
+           console.log("Disconnectd from server...");
+           });
+
+           //Handle when a new message is received
+           socket.on("newMessage",function(message) {
+               var formattedTime = moment(message.createdAt).format("h:mm a");
+               var messageList = document.querySelector("#messages");
+
+               messageList.insertAdjacentHTML("beforeend",`<li><div class="message-info">${message.author} ${formattedTime} </div> <div class="message-text">${message.text}</div></li>`);
+               console.log(message);
+
+               var myElement = document.getElementById('messages');
+               var topPos = myElement.offsetTop;
+               var height= myElement.scrollHeight;
+               myElement.scrollTop = height;
+           });
+
+           //Handle when new location message is received
+           socket.on("newLocationMessage",function(message) {
+               var formattedTime = moment(message.createdAt).format("h:mm a");
+               var messageList = document.querySelector("#messages");
+
+               messageList.insertAdjacentHTML("beforeend",`<li><div class="message-info">${message.author} ${formattedTime} </div><div class="message-text"> <a target="_blank" href="${message.url}">My Current Location</a></div></li>`);
+           });
+
+
+
+           const form = document.querySelector("#message-form");
+
+           console.log(form);
+
+           // Handle when user type a message and press enter
+           form.addEventListener("submit",function(e) {
+               e.preventDefault();
+
+               var text = document.querySelector("#message-input").value;
+               var id = document.querySelector("input[name='message-user-id']").value;
+               var user_name = document.querySelector("input[name='message-user-name']").value;
+               console.log("id is "+ id);
+               console.log("name is "+ user_name);
+
+
+               socket.emit("createMessage",{
+                   author: id,
+                   text: text,
+                   userName: user_name
+               },function(data) {
+                   console.log("got it!",data);
+                   document.querySelector("#message-input").value = "";
+               });
+
+           });
+
+           var locationButton = document.querySelector("#send-location");
+
+           // Handle when a user press location button
+           locationButton.addEventListener("click",function(e) {
+           if(!navigator.geolocation) {
+               return alert("Geolocation Not Supported...");
+           }
+           navigator.geolocation.getCurrentPosition(function(position) {
+           //   do_something(position.coords.latitude, position.coords.longitude);
+               console.log(position);
+               socket.emit("createLocationMessage",{
+                   latitude : position.coords.latitude,
+                   longitude : position.coords.longitude,
+               });
+
+           },function() {
+               alert("Cannot get current location...");
+           });
+           });
+
+
+
+     </script>
+
+
+  </body>
+</html>
